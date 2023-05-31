@@ -48,19 +48,19 @@ steps:
         - run: skupper token create /tmp/public1.yaml --uses 3
           output: Token written to ~/secret.token
       public2:
-        - run: skupper link create /tmp/public1.yaml
+        - run: skupper link create /tmp/public1.yaml --cost 2
           output:  |
             Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
             Check the status of the link using 'skupper link status'.
         - run: skupper link status --wait 60
           apply: test
       private1:
-        - run: skupper link create /tmp/public1.yaml
+        - run: skupper link create /tmp/public1.yaml --cost 2
           output:  |
             Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
             Check the status of the link using 'skupper link status'.
       private2:
-        - run: skupper link create /tmp/public1.yaml
+        - run: skupper link create /tmp/public1.yaml --cost 2
           output:  |
             Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
             Check the status of the link using 'skupper link status'.
@@ -96,7 +96,7 @@ steps:
       In the **private2** and **public2** clusters, use the `kubectl apply` command
       to install the clients.
     commands:
-      public2:
+      public1:
         - run: kubectl apply -f ./client.yaml
           output: deployment.apps/http-client created
       private2:
@@ -108,7 +108,7 @@ steps:
       Use the `kubectl logs` command to inspect these logs and see how the traffic
       was balanced.
     commands:
-      public2:
+      public1:
         - await: deployment/http-client
         - run: kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}')
           output: |
