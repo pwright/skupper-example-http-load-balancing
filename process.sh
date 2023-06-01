@@ -1,8 +1,10 @@
 gitbranch=$(git branch |grep \* | cut -d " " -f2)
 echo $gitbranch
+cp skewer.yaml  ~/cost-experiment/pages/$gitbranch-skewer.yaml
 while read p; do
   kube=$(echo "$p"| sed -e 's/^\w*:\ *//')
   label=$(echo $p | head -n1 | cut -d ":" -f1)
+  cp skewer.yaml  ~/cost-experiment/pages/$gitbranch-skewer.yaml
   loc=~/cost-experiment/pages/$gitbranch-$label.md
   echo $kube
   $kube
@@ -16,9 +18,11 @@ while read p; do
 
   echo "~~~">>$loc
   kubectl get pods >>$loc
+
+  kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}') | head -n 20 >> $loc
   echo "~~~">>$loc
 
-  skupper debug dump $loc.tar.gz
+  # skupper debug dump $loc.tar.gz
 
 
   
