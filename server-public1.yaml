@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: http-server-pub1
+  name: http-server-public1
 spec:
   replicas: 1
   selector:

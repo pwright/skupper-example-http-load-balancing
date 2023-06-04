@@ -9,15 +9,9 @@ sites:
   public1:
     kubeconfig: ~/.kube/config-public1
     namespace: public1
-  public2:
-    kubeconfig: ~/.kube/config-public2
-    namespace: public2
   private1:
     kubeconfig: ~/.kube/config-private1
     namespace: private1
-  private2:
-    kubeconfig: ~/.kube/config-private2
-    namespace: private2
 steps:
   - standard: install_the_skupper_command_line_tool
   - standard: configure_separate_console_sessions
@@ -45,21 +39,9 @@ steps:
       link.
     commands:
       public1:
-        - run: skupper token create /tmp/public1.yaml --uses 3
+        - run: skupper token create /tmp/public1.yaml
           output: Token written to ~/secret.token
-      public2:
-        - run: skupper link create /tmp/public1.yaml --cost 25
-          output:  |
-            Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
-            Check the status of the link using 'skupper link status'.
-        - run: skupper link status --wait 60
-          apply: test
       private1:
-        - run: skupper link create /tmp/public1.yaml --cost 25
-          output:  |
-            Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
-            Check the status of the link using 'skupper link status'.
-      private2:
         - run: skupper link create /tmp/public1.yaml --cost 25
           output:  |
             Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
@@ -70,11 +52,11 @@ steps:
       to install the servers.
     commands:
       public1:
-        - run: kubectl apply -f ./serverpub1.yaml
-          output: deployment.apps/http-server-pub1 created
+        - run: kubectl apply -f ./server-public1.yaml
+          output: deployment.apps/http-server-public1 created
       private1:
-        - run: kubectl apply -f ./server.yaml
-          output: deployment.apps/http-server created
+        - run: kubectl apply -f ./server-private1.yaml
+          output: deployment.apps/http-server-private1 created
   - title: Expose the HTTP servers
     preamble: |
       Use `skupper create` to create a service that is accessible from any site.
@@ -86,44 +68,26 @@ steps:
       Bind the new service to the HTTP server deployments.
     commands:
       public1:
-        - await: deployment/http-server-pub1
-        - run: skupper service bind httpsvc deployment http-server-pub1
+        - await: deployment/http-server-public1
+        - run: skupper service bind httpsvc deployment http-server-public1
       private1:
-        - await: deployment/http-server
-        - run: skupper service bind httpsvc deployment http-server
+        - await: deployment/http-server-private1
+        - run: skupper service bind httpsvc deployment http-server-private1
   - title: Deploy the HTTP clients
     preamble: |
-      In the **private2** and **public2** clusters, use the `kubectl apply` command
+      In the **public1** cluster, use the `kubectl apply` command
       to install the clients.
     commands:
       public1:
         - run: kubectl apply -f ./client.yaml
           output: deployment.apps/http-client created
-      private2:
-        - run: kubectl apply -f ./client.yaml
-          output: deployment.apps/http-client created
   - title: Review the client logs
     preamble: |
-      The client pods contain logs showing which server reponded to requests.
+      The client pods contain logs showing which server responded to requests.
       Use the `kubectl logs` command to inspect these logs and see how the traffic
       was balanced.
     commands:
       public1:
-        - await: deployment/http-client
-        - run: kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}')
-          output: |
-            Service Name: HTTPSVC
-            Service Host: 10.105.108.176
-            Service Port: 8080
-            Configured concurrency: 50
-            Query URL: http://10.105.108.176:8080/request
-
-            ======== Rates per server-pod ========
-            http-server-774567c64f-n2qt9: 75.5
-            http-server-774567c64f-qw9kw: 84.5
-            http-server-774567c64f-2mm88: 87
-            http-server-774567c64f-mxfhx: 73
-      private2:
         - await: deployment/http-client
         - run: kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}')
           output: |
@@ -148,12 +112,6 @@ steps:
       private1:
         - run: skupper delete
         - run: kubectl delete -f ./server.yaml
-      public2:
-        - run: skupper delete
-        - run: kubectl delete -f ./client.yaml
-      private2:
-        - run: skupper delete
-        - run: kubectl delete -f ./client.yaml
 
 
 summary: |
