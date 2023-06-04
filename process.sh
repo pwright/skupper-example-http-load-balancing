@@ -19,7 +19,7 @@ while read p; do
   echo "~~~">>$loc
   kubectl get pods >>$loc
 
-  kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}') | head -n 100 >> $loc
+  kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}') | head -n 250 >> $loc
   echo "~~~">>$loc
 
   #skupper debug dump $loc.tar.gz

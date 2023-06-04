@@ -42,7 +42,7 @@ steps:
         - run: skupper token create /tmp/public1.yaml
           output: Token written to ~/secret.token
       private1:
-        - run: skupper link create /tmp/public1.yaml --cost 25
+        - run: skupper link create /tmp/public1.yaml --cost 50
           output:  |
             Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
             Check the status of the link using 'skupper link status'.

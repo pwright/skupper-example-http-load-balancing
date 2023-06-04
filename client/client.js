@@ -75,8 +75,14 @@ run_requests();
 //
 setInterval((function() {
     console.log('\n======== Rates per server-pod ========');
-    console.log("\nConfigured concurrency: %d", concurrent_requests);
-    concurrent_requests += 10;
+    
+    // max concurrency of 100
+    if (concurrent_requests > 100) {
+        concurrent_requests=5
+    } else {
+        concurrent_requests += 5;
+    }
+    
     console.log("\nConfigured concurrency: %d", concurrent_requests);
     for (pod in rates) {
         console.log('%s: %d', pod, rates[pod] / 2);
