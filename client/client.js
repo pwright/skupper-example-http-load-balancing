@@ -31,7 +31,7 @@ var service_port        = env[service_name + '_SERVICE_PORT'];
 var url = 'http://' + service_host + ':' + service_port + '/request';
 
 console.log("Configured concurrency: %d", concurrent_requests);
-console.log("Query URL: %s", url);
+//console.log("Query URL: %s", url);
 
 function record_pod(pod) {
     if (rates[pod] == undefined) {
@@ -75,6 +75,9 @@ run_requests();
 //
 setInterval((function() {
     console.log('\n======== Rates per server-pod ========');
+    console.log("\nConfigured concurrency: %d", concurrent_requests);
+    concurrent_requests += 10;
+    console.log("\nConfigured concurrency: %d", concurrent_requests);
     for (pod in rates) {
         console.log('%s: %d', pod, rates[pod] / 2);
         delete rates[pod];
