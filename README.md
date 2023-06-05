@@ -98,22 +98,10 @@ _**Console for public1:**_
 export KUBECONFIG=~/.kube/config-public1
 ~~~
 
-_**Console for public2:**_
-
-~~~ shell
-export KUBECONFIG=~/.kube/config-public2
-~~~
-
 _**Console for private1:**_
 
 ~~~ shell
 export KUBECONFIG=~/.kube/config-private1
-~~~
-
-_**Console for private2:**_
-
-~~~ shell
-export KUBECONFIG=~/.kube/config-private2
 ~~~
 
 ## Step 3: Access your clusters
@@ -138,25 +126,11 @@ kubectl create namespace public1
 kubectl config set-context --current --namespace public1
 ~~~
 
-_**Console for public2:**_
-
-~~~ shell
-kubectl create namespace public2
-kubectl config set-context --current --namespace public2
-~~~
-
 _**Console for private1:**_
 
 ~~~ shell
 kubectl create namespace private1
 kubectl config set-context --current --namespace private1
-~~~
-
-_**Console for private2:**_
-
-~~~ shell
-kubectl create namespace private2
-kubectl config set-context --current --namespace private2
 ~~~
 
 ## Step 5: Install Skupper in your namespaces
@@ -176,19 +150,7 @@ _**Console for public1:**_
 skupper init --enable-console --enable-flow-collector
 ~~~
 
-_**Console for public2:**_
-
-~~~ shell
-skupper init
-~~~
-
 _**Console for private1:**_
-
-~~~ shell
-skupper init
-~~~
-
-_**Console for private2:**_
 
 ~~~ shell
 skupper init
@@ -213,19 +175,7 @@ _**Console for public1:**_
 skupper status
 ~~~
 
-_**Console for public2:**_
-
-~~~ shell
-skupper status
-~~~
-
 _**Console for private1:**_
-
-~~~ shell
-skupper status
-~~~
-
-_**Console for private2:**_
 
 ~~~ shell
 skupper status
@@ -264,54 +214,26 @@ link.
 _**Console for public1:**_
 
 ~~~ shell
-skupper token create /tmp/public1.yaml --uses 3
+skupper token create /tmp/public1.yaml
 ~~~
 
 _Sample output:_
 
 ~~~ console
-$ skupper token create /tmp/public1.yaml --uses 3
+$ skupper token create /tmp/public1.yaml
 Token written to ~/secret.token
-~~~
-
-_**Console for public2:**_
-
-~~~ shell
-skupper link create /tmp/public1.yaml
-~~~
-
-_Sample output:_
-
-~~~ console
-$ skupper link create /tmp/public1.yaml
-Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
-Check the status of the link using 'skupper link status'.
 ~~~
 
 _**Console for private1:**_
 
 ~~~ shell
-skupper link create /tmp/public1.yaml
+skupper link create /tmp/public1.yaml --cost 50
 ~~~
 
 _Sample output:_
 
 ~~~ console
-$ skupper link create /tmp/public1.yaml
-Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
-Check the status of the link using 'skupper link status'.
-~~~
-
-_**Console for private2:**_
-
-~~~ shell
-skupper link create /tmp/public1.yaml
-~~~
-
-_Sample output:_
-
-~~~ console
-$ skupper link create /tmp/public1.yaml
+$ skupper link create /tmp/public1.yaml --cost 50
 Site configured to link to https://10.105.193.154:8081/ed9c37f6-d78a-11ec-a8c7-04421a4c5042 (name=link1)
 Check the status of the link using 'skupper link status'.
 ~~~
@@ -324,27 +246,27 @@ to install the servers.
 _**Console for public1:**_
 
 ~~~ shell
-kubectl apply -f ./server.yaml
+kubectl apply -f ./server-public1.yaml
 ~~~
 
 _Sample output:_
 
 ~~~ console
-$ kubectl apply -f ./server.yaml
-deployment.apps/http-server created
+$ kubectl apply -f ./server-public1.yaml
+deployment.apps/http-server-public1 created
 ~~~
 
 _**Console for private1:**_
 
 ~~~ shell
-kubectl apply -f ./server.yaml
+kubectl apply -f ./server-private1.yaml
 ~~~
 
 _Sample output:_
 
 ~~~ console
-$ kubectl apply -f ./server.yaml
-deployment.apps/http-server created
+$ kubectl apply -f ./server-private1.yaml
+deployment.apps/http-server-private1 created
 ~~~
 
 ## Step 9: Expose the HTTP servers
@@ -364,34 +286,21 @@ Bind the new service to the HTTP server deployments.
 _**Console for public1:**_
 
 ~~~ shell
-skupper service bind httpsvc deployment http-server
+skupper service bind httpsvc deployment http-server-public1
 ~~~
 
 _**Console for private1:**_
 
 ~~~ shell
-skupper service bind httpsvc deployment http-server
+skupper service bind httpsvc deployment http-server-private1
 ~~~
 
 ## Step 11: Deploy the HTTP clients
 
-In the **private2** and **public2** clusters, use the `kubectl apply` command
+In the **public1** cluster, use the `kubectl apply` command
 to install the clients.
 
-_**Console for public2:**_
-
-~~~ shell
-kubectl apply -f ./client.yaml
-~~~
-
-_Sample output:_
-
-~~~ console
-$ kubectl apply -f ./client.yaml
-deployment.apps/http-client created
-~~~
-
-_**Console for private2:**_
+_**Console for public1:**_
 
 ~~~ shell
 kubectl apply -f ./client.yaml
@@ -406,34 +315,11 @@ deployment.apps/http-client created
 
 ## Step 12: Review the client logs
 
-The client pods contain logs showing which server reponded to requests.
+The client pods contain logs showing which server responded to requests.
 Use the `kubectl logs` command to inspect these logs and see how the traffic
 was balanced.
 
-_**Console for public2:**_
-
-~~~ shell
-kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}')
-~~~
-
-_Sample output:_
-
-~~~ console
-$ kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}')
-Service Name: HTTPSVC
-Service Host: 10.105.108.176
-Service Port: 8080
-Configured concurrency: 50
-Query URL: http://10.105.108.176:8080/request
-
-======== Rates per server-pod ========
-http-server-774567c64f-n2qt9: 75.5
-http-server-774567c64f-qw9kw: 84.5
-http-server-774567c64f-2mm88: 87
-http-server-774567c64f-mxfhx: 73
-~~~
-
-_**Console for private2:**_
+_**Console for public1:**_
 
 ~~~ shell
 kubectl logs $(kubectl get pod -l application=http-client -o=jsonpath='{.items[0].metadata.name}')
@@ -507,20 +393,6 @@ _**Console for private1:**_
 ~~~ shell
 skupper delete
 kubectl delete -f ./server.yaml
-~~~
-
-_**Console for public2:**_
-
-~~~ shell
-skupper delete
-kubectl delete -f ./client.yaml
-~~~
-
-_**Console for private2:**_
-
-~~~ shell
-skupper delete
-kubectl delete -f ./client.yaml
 ~~~
 
 ## Summary
