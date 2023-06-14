@@ -17,7 +17,25 @@ steps:
   - standard: configure_separate_console_sessions
   - standard: access_your_clusters
   - standard: set_up_your_namespaces
-  - standard: install_skupper_in_your_namespaces
+
+  - title: Install Skupper in your namespaces
+  - preamble: |
+      The `skupper init` command installs the Skupper router and service
+      controller in the current namespace.  Run the `skupper init` command
+      in each namespace.
+
+      **Note:** If you are using Minikube, [you need to start `minikube
+      tunnel`][minikube-tunnel] before you install Skupper.
+
+      [minikube-tunnel]: https://skupper.io/start/minikube.html#running-minikube-tunnel
+    commands:
+      public1:
+        - run: skupper init --router-cpu 3 --enable-console --enable-flow-collector
+          output: Skupper is now installed in namespace '<namespace>'.  Use 'skupper status' to get more information.
+      private1:
+        - run: skupper init --router-cpu 3 
+          output: Skupper is now installed in namespace '<namespace>'.  Use 'skupper status' to get more information.
+
   - standard: check_the_status_of_your_namespaces
   - title: Link your namespaces
     preamble: |
